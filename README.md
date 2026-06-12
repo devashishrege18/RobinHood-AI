@@ -1,20 +1,20 @@
-# 🏹 RobinHood AI
+# Robin-Hood AI
 
-> **AI-powered negotiation advisor for farmers, retailers, and small businesses.**
+> AI-powered negotiation advisor for farmers, retailers, and small businesses.
 
-RobinHood AI levels the playing field by giving everyday people access to expert negotiation strategies — powered by Google's Gemini 2.5 Flash.
+Robin-Hood AI levels the playing field by giving everyday people access to expert negotiation strategies — powered by Google Gemini 2.5 Flash. Speak or upload a contract, and get a full risk analysis, market comparison, and ready-to-use negotiation strategy.
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
-- **Node.js** v18+
-- **Python** 3.10+
-- **Gemini API Key** — get one free at [Google AI Studio](https://aistudio.google.com/apikey)
+- Node.js v18+
+- Python 3.10+
+- Gemini API Key — get one free at [Google AI Studio](https://aistudio.google.com/apikey)
 
-### 1. Clone & Setup Backend
+### 1. Clone and Setup Backend
 
 ```bash
 cd robinhood-ai/backend
@@ -25,19 +25,20 @@ python -m venv venv
 # Activate (Windows PowerShell)
 .\venv\Scripts\Activate.ps1
 
+# Activate (Mac / Linux)
+source venv/bin/activate
+
 # Install dependencies
 pip install -r requirements.txt
 
-# Set your API key
-# Edit .env and replace 'your-gemini-api-key-here' with your actual key
+# Add your API key — edit backend/.env
+# GEMINI_API_KEY=your-actual-key-here
 ```
 
 ### 2. Setup Frontend
 
 ```bash
 cd robinhood-ai/frontend
-
-# Install dependencies
 npm install
 ```
 
@@ -60,61 +61,89 @@ npm run dev
 
 ### 4. Open the App
 
-- **Frontend:** http://localhost:5173
-- **API Docs:** http://localhost:8000/docs
+- Frontend: http://localhost:5173
+- API Docs: http://localhost:8000/docs
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 robinhood-ai/
-├── frontend/          # React + Vite + TailwindCSS
-│   ├── src/
-│   │   ├── components/   # Reusable UI components
-│   │   ├── pages/        # Route pages
-│   │   ├── hooks/        # Custom React hooks
-│   │   ├── services/     # API client
-│   │   └── utils/        # Helpers
-│   └── ...
-├── backend/           # FastAPI + Gemini
-│   ├── app/
-│   │   ├── routers/      # API endpoints
-│   │   ├── services/     # Gemini integration
-│   │   ├── models/       # Pydantic schemas
-│   │   └── prompts/      # AI prompt templates
-│   └── ...
-└── README.md
+├── frontend/               # React + Vite + TailwindCSS
+│   ├── public/
+│   │   └── logo.png        # Robin Hood character logo
+│   └── src/
+│       ├── components/     # VoiceMic, FileUpload, RiskGauge, etc.
+│       ├── pages/          # HomePage, NegotiatePage, AboutPage
+│       ├── hooks/          # useAnalysis
+│       └── services/       # API client
+└── backend/                # FastAPI + Gemini
+    └── app/
+        ├── routers/        # API endpoints
+        ├── services/       # Gemini 2.5 Flash integration
+        ├── models/         # Pydantic schemas
+        └── prompts/        # AI prompt templates
 ```
 
 ---
 
-## 🛠 Tech Stack
+## How It Works
 
-| Layer    | Technology         |
-| -------- | ------------------ |
-| Frontend | React + Vite       |
-| Styling  | TailwindCSS        |
-| Backend  | FastAPI (Python)   |
-| AI       | Gemini 2.5 Flash   |
-| Deploy   | Localhost           |
+1. **Speak or Upload** — Describe your deal by voice (Hindi or English) or upload a contract PDF/image
+2. **AI Analyzes** — Gemini 2.5 Flash extracts text, fetches market data, identifies risky clauses
+3. **See the Risks** — Risk score gauge (0-100), flagged clauses with severity, market price comparison
+4. **Get Your Strategy** — Counter-offer suggestion, price reasoning, numbered negotiation talking points
 
 ---
 
-## 📝 API
+## API Reference
 
-### `POST /api/negotiate`
+### `POST /api/analyze`
 
-Send deal details, receive AI-powered negotiation advice.
+Analyze a contract from voice input or uploaded document.
+
+**Request:**
+```json
+{
+  "text": "Company offered me wheat at Rs 2350 per quintal",
+  "file_content": "<base64-encoded file>",
+  "file_name": "contract.pdf",
+  "language": "en"
+}
+```
+
+**Response:**
+```json
+{
+  "risk_score": 72,
+  "risk_level": "high",
+  "risks": [...],
+  "market_comparison": {...},
+  "suggested_price": "2,650",
+  "improvement_pct": "+12.77%",
+  "price_reasoning": [...],
+  "negotiation_points": [...]
+}
+```
 
 ### `GET /api/health`
 
-Health check endpoint.
-
-See full API docs at http://localhost:8000/docs when running.
+Health check — returns `{"status": "ok"}`.
 
 ---
 
-## 📄 License
+## Tech Stack
 
-MIT — Built with ❤️ for the Hackathon.
+| Layer    | Technology       |
+|----------|-----------------|
+| Frontend | React + Vite     |
+| Styling  | TailwindCSS      |
+| Backend  | FastAPI (Python) |
+| AI       | Gemini 2.5 Flash |
+
+---
+
+## License
+
+MIT — Built for the Hackathon.
