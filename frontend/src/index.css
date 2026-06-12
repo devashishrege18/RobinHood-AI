@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-white text-slate-800 font-sans;
+    min-height: 100vh;
+  }
+
+  ::selection {
+    @apply bg-robin-500/15 text-robin-700;
+  }
+
+  ::-webkit-scrollbar {
+    width: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-100;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400;
+  }
+}
+
+@layer components {
+  /* ─── Cards ─── */
+  .card {
+    @apply bg-white border border-slate-200 rounded-2xl shadow-sm;
+  }
+
+  .card-hover {
+    @apply card transition-all duration-200;
+  }
+  .card-hover:hover {
+    @apply border-slate-300 shadow-md;
+  }
+
+  /* ─── Buttons ─── */
+  .btn-primary {
+    @apply px-6 py-3 rounded-xl font-semibold text-sm
+           bg-robin-500 text-white
+           hover:bg-robin-600
+           active:scale-[0.98]
+           transition-all duration-150;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 rounded-xl font-semibold text-sm
+           bg-white border border-slate-200 text-slate-700
+           hover:bg-slate-50 hover:border-slate-300
+           active:scale-[0.98]
+           transition-all duration-150;
+  }
+
+  .btn-outline-green {
+    @apply px-6 py-3 rounded-xl font-semibold text-sm
+           bg-white border-2 border-robin-500 text-robin-700
+           hover:bg-robin-50
+           active:scale-[0.98]
+           transition-all duration-150;
+  }
+
+  /* ─── Inputs ─── */
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl
+           bg-white border border-slate-200
+           text-slate-800 placeholder-slate-400
+           focus:outline-none focus:border-robin-500 focus:ring-2 focus:ring-robin-500/10
+           transition-all duration-150;
+  }
+
+  .textarea-field {
+    @apply input-field resize-none;
+  }
+
+  /* ─── Layout ─── */
+  .section-container {
+    @apply max-w-5xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Full-width container for header/footer — edge to edge with breathing room */
+  .header-container {
+    @apply w-full px-6 sm:px-10 lg:px-16;
+  }
+
+  /* ─── Badges ─── */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+  }
+  .badge-high {
+    @apply badge bg-red-50 text-red-700 border border-red-200;
+  }
+  .badge-medium {
+    @apply badge bg-amber-50 text-amber-700 border border-amber-200;
+  }
+  .badge-low {
+    @apply badge bg-green-50 text-robin-700 border border-green-200;
+  }
+
+  /* ─── Risk severity dot ─── */
+  .dot-high { @apply w-2 h-2 rounded-full bg-red-500; }
+  .dot-medium { @apply w-2 h-2 rounded-full bg-amber-500; }
+  .dot-low { @apply w-2 h-2 rounded-full bg-green-500; }
+
+  /* ─── Mic button ─── */
+  .mic-button {
+    @apply w-24 h-24 rounded-full flex items-center justify-center
+           bg-robin-500 text-white cursor-pointer
+           hover:bg-robin-600 active:scale-95
+           transition-all duration-200 relative;
+  }
+
+  .mic-button-listening {
+    @apply mic-button bg-red-500 hover:bg-red-600;
+  }
+}

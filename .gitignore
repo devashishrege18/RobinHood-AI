@@ -1,0 +1,34 @@
+# ─── Dependencies ───
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+*.egg-info/
+
+# ─── Environment ───
+.env
+.env.local
+.env.*.local
+
+# ─── Build Output ───
+dist/
+build/
+*.spec
+
+# ─── IDE ───
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── OS ───
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Logs ───
+*.log
+npm-debug.log*
