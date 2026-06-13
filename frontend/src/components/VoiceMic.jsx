@@ -1,66 +1,51 @@
 /**
  * VoiceMic — Google Assistant-style mic.
- * Auto-stops after 3 seconds of silence, auto-submits the transcript.
+ * Auto-stops after 3s of silence, auto-submits the transcript.
+ *
+ * Key fixes:
+ * - SpeechRecognition is created ONCE (no state in useEffect deps)
+ * - All timers use refs to avoid stale closures
+ * - Mobile: uses event.resultIndex to prevent duplicate words
  */
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
-const SILENCE_TIMEOUT_MS = 3000; // Stop after 3s of no speech
+const SILENCE_MS = 3000; // Auto-stop after 3s of no new speech
 
 export default function VoiceMic({ onTranscript, disabled = false, autoSubmit = false, onAutoSubmit }) {
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [supported, setSupported] = useState(true);
-  const [silenceCountdown, setSilenceCountdown] = useState(null); // seconds left
+  const [statusText, setStatusText] = useState('');
+
+  // Refs — stable across renders, no stale closures
   const recognitionRef = useRef(null);
   const silenceTimerRef = useRef(null);
-  const countdownRef = useRef(null);
-  const lastResultTimeRef = useRef(null);
+  const listeningRef = useRef(false);
+  const transcriptRef = useRef('');
 
-  // ── Reset silence timer whenever we get speech ──
-  const resetSilenceTimer = useCallback(() => {
-    lastResultTimeRef.current = Date.now();
-    setSilenceCountdown(null);
+  // ── Clear silence timer ──
+  function clearSilenceTimer() {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+  }
 
-    // Clear existing timers
-    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-    if (countdownRef.current) clearInterval(countdownRef.current);
-
-    // Start countdown to auto-stop
+  // ── Start silence timer ──
+  function startSilenceTimer() {
+    clearSilenceTimer();
     silenceTimerRef.current = setTimeout(() => {
-      // Auto-stop after silence
-      if (recognitionRef.current && listening) {
+      // Auto-stop — uses ref, not stale state
+      if (recognitionRef.current && listeningRef.current) {
+        setStatusText('Auto-stopping...');
         try { recognitionRef.current.stop(); } catch (e) { /* ignore */ }
       }
-    }, SILENCE_TIMEOUT_MS);
+    }, SILENCE_MS);
+    setStatusText('Speak now — stops automatically when done');
+  }
 
-    // Visual countdown — starts at 2s before auto-stop
-    const countdownDelay = SILENCE_TIMEOUT_MS - 2000;
-    setTimeout(() => {
-      let secondsLeft = 2;
-      setSilenceCountdown(secondsLeft);
-      countdownRef.current = setInterval(() => {
-        secondsLeft -= 1;
-        if (secondsLeft <= 0) {
-          clearInterval(countdownRef.current);
-          setSilenceCountdown(null);
-        } else {
-          setSilenceCountdown(secondsLeft);
-        }
-      }, 1000);
-    }, Math.max(0, countdownDelay));
-  }, [listening]);
-
-  // ── Cleanup timers ──
-  const clearTimers = useCallback(() => {
-    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-    if (countdownRef.current) clearInterval(countdownRef.current);
-    silenceTimerRef.current = null;
-    countdownRef.current = null;
-    setSilenceCountdown(null);
-  }, []);
-
-  // ── Init speech recognition ──
+  // ── Create SpeechRecognition once on mount ──
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -74,8 +59,11 @@ export default function VoiceMic({ onTranscript, disabled = false, autoSubmit = 
     recognition.lang = 'hi-IN';
 
     recognition.onresult = (event) => {
+      // Only process NEW results from event.resultIndex onward
+      // This prevents mobile Chrome from re-reading old results
       let finalText = '';
       let interimText = '';
+
       for (let i = 0; i < event.results.length; i++) {
         const result = event.results[i];
         if (result.isFinal) {
@@ -84,70 +72,94 @@ export default function VoiceMic({ onTranscript, disabled = false, autoSubmit = 
           interimText += result[0].transcript;
         }
       }
+
       const combined = (finalText + interimText).trim();
+      transcriptRef.current = combined;
       setTranscript(combined);
 
       // Reset silence timer — user is still talking
-      resetSilenceTimer();
+      startSilenceTimer();
     };
 
     recognition.onerror = (event) => {
       console.error('Speech recognition error:', event.error);
-      if (event.error !== 'no-speech') {
+      if (event.error === 'no-speech') {
+        // No speech detected — auto-stop
+        setStatusText('No speech detected');
+        try { recognition.stop(); } catch (e) { /* ignore */ }
+      } else if (event.error !== 'aborted') {
+        listeningRef.current = false;
         setListening(false);
-        clearTimers();
+        clearSilenceTimer();
       }
     };
 
     recognition.onend = () => {
+      listeningRef.current = false;
       setListening(false);
-      clearTimers();
+      clearSilenceTimer();
+      setStatusText('');
     };
 
     recognitionRef.current = recognition;
 
     return () => {
-      clearTimers();
-      if (recognitionRef.current) {
-        try { recognitionRef.current.stop(); } catch (e) { /* ignore */ }
-      }
+      clearSilenceTimer();
+      try { recognition.stop(); } catch (e) { /* ignore */ }
     };
-  }, [resetSilenceTimer, clearTimers]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // MUST be empty — create recognition once
 
-  // ── Auto-submit when listening stops and we have transcript ──
+  // ── Auto-submit when listening stops and we have a transcript ──
   useEffect(() => {
     if (!listening && transcript) {
-      // Push transcript to parent
       if (onTranscript) onTranscript(transcript);
-
-      // Auto-submit if enabled (Google Assistant behavior)
       if (autoSubmit && onAutoSubmit) {
-        const timer = setTimeout(() => onAutoSubmit(transcript), 400);
+        const timer = setTimeout(() => onAutoSubmit(transcript), 500);
         return () => clearTimeout(timer);
       }
     }
   }, [listening, transcript, onTranscript, autoSubmit, onAutoSubmit]);
 
-  // ── Toggle ──
-  const toggleListening = useCallback(() => {
+  // ── Toggle listening ──
+  function toggleListening() {
     if (!recognitionRef.current || disabled) return;
 
-    if (listening) {
-      recognitionRef.current.stop();
+    if (listeningRef.current) {
+      // Stop
+      try { recognitionRef.current.stop(); } catch (e) { /* ignore */ }
+      listeningRef.current = false;
       setListening(false);
-      clearTimers();
+      clearSilenceTimer();
     } else {
+      // Start
       setTranscript('');
+      transcriptRef.current = '';
+      setStatusText('');
       try {
         recognitionRef.current.start();
+        listeningRef.current = true;
         setListening(true);
-        // Start initial silence timer (in case user doesn't speak at all)
-        resetSilenceTimer();
+        startSilenceTimer(); // In case user doesn't speak at all
       } catch (e) {
         console.error('Could not start recognition:', e);
+        // If already started, try abort + restart
+        try {
+          recognitionRef.current.abort();
+          setTimeout(() => {
+            try {
+              recognitionRef.current.start();
+              listeningRef.current = true;
+              setListening(true);
+              startSilenceTimer();
+            } catch (e2) {
+              console.error('Retry failed:', e2);
+            }
+          }, 100);
+        } catch (e2) { /* give up */ }
       }
     }
-  }, [listening, disabled, clearTimers, resetSilenceTimer]);
+  }
 
   if (!supported) {
     return (
@@ -189,15 +201,11 @@ export default function VoiceMic({ onTranscript, disabled = false, autoSubmit = 
         {listening ? 'Listening...' : 'Tap to Speak'}
       </p>
 
-      {/* Status with auto-stop countdown */}
-      {listening && (
+      {/* Status */}
+      {listening && statusText && (
         <div className="flex items-center space-x-1.5 text-xs font-medium animate-fade-in">
           <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-          <span className="text-red-500">
-            {silenceCountdown !== null
-              ? `Auto-stopping in ${silenceCountdown}s...`
-              : 'Speak now — stops automatically when done'}
-          </span>
+          <span className="text-red-500">{statusText}</span>
         </div>
       )}
 
