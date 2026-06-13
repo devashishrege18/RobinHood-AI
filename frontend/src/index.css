@@ -130,3 +130,26 @@
     @apply mic-button bg-red-500 hover:bg-red-600;
   }
 }
+
+/* ─── Gallery scroll animations ─── */
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes scroll-right {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+.animate-scroll-left {
+  animation: scroll-left 30s linear infinite;
+}
+
+.animate-scroll-right {
+  animation: scroll-right 35s linear infinite;
+}
+
+.animate-scroll-left-slow {
+  animation: scroll-left 40s linear infinite;
+}
