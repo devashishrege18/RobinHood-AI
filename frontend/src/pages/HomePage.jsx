@@ -43,31 +43,31 @@ function GalleryRow({ images, anim }) {
   );
 }
 
-/* ── Language query banks ── */
+/* ── Language query banks — medium-length, fills box evenly ── */
 const LANGUAGES = {
   left: [
     {
       lang: 'Hindi',
       queries: [
-        'मेरा गेहूं का अनुबंध ₹2,350 प्रति क्विंटल है। क्या यह उचित है?',
-        'बिचौलिया 15% कमीशन ले रहा है, इसे कम कैसे करूं?',
-        'सोयाबीन के अनुबंध में जुर्माना खंड बहुत अधिक है।',
+        'मेरा गेहूं ₹2,350/क्विंटल पर है, पर मंडी में ₹2,620 मिल रहा है। क्या इस अंतर पर बातचीत हो सकती है?',
+        'बिचौलिया 18% कम दे रहा है और सरकारी केंद्र बंद है। मुझे सही खरीदार और बेहतर भाव कैसे मिलेगा?',
+        'सप्लायर ने वार्षिक अनुबंध भेजा है। इसकी शर्तों में कौन से छुपे जोखिम हो सकते हैं?',
       ],
     },
     {
       lang: 'Bengali',
       queries: [
-        'আমার ধানের চুক্তি ₹১,৮০০ প্রতি কুইন্টাল। এটা কি ন্যায্য?',
-        'দালাল বাজার মূল্যের চেয়ে ২০% কম দিচ্ছে।',
-        'কৃষি চুক্তিতে অগ্রিম পেমেন্টের সুবিধা কি আছে?',
+        'ধান চুক্তিতে ₹১,৮০০ কিন্তু সরকারি MSP ₹২,১৮৩। এই চুক্তি বাতিল বা পুনরায় আলোচনা কি সম্ভব?',
+        'আড়তদার বলছেন ৩ দিনে পেমেন্ট না নিলে দাম কমবে। এই চাপ থেকে কীভাবে আমার স্বার্থ রক্ষা করব?',
+        'ব্যবসায়ী এখনই পাটের ফসলের দাম নির্ধারণ করতে বলছেন। ফরওয়ার্ড চুক্তিতে আমার কী ঝুঁকি?',
       ],
     },
     {
       lang: 'Tamil',
       queries: [
-        'என் நெல் ஒப்பந்தம் ₹1,950 குவிண்டாலுக்கு நியாயமா?',
-        'இடைத்தரகர் 18% கமிஷன் வாங்குகிறார் — எப்படி பேசுவது?',
-        'கரும்பு ஒப்பந்தத்தில் மறைந்த நிபந்தனைகள் என்ன?',
+        'நெல் ₹1,950/குவிண்டால் ஒப்பந்தம், திறந்த சந்தையில் ₹2,250. இந்த வித்தியாசம் எப்படி சரிசெய்வது?',
+        'கமிஷன் ஏஜென்ட் 45 நாட்கள் கழித்து பணம் தருவதாக சொல்கிறார். இது என் வாழ்க்கையை எப்படி பாதிக்கும்?',
+        'மொத்த விற்பனையாளர் 15% விலை உயர்த்தினார். புதிய சப்ளையரை எப்படி கண்டுபிடிப்பது?',
       ],
     },
   ],
@@ -75,29 +75,30 @@ const LANGUAGES = {
     {
       lang: 'Punjabi',
       queries: [
-        'ਮੇਰਾ ਕਣਕ ਦਾ ਇਕਰਾਰਨਾਮਾ ₹2,015 ਪ੍ਰਤੀ ਕੁਇੰਟਲ ਹੈ। ਕੀ ਇਹ ਸਹੀ ਹੈ?',
-        'ਦਲਾਲ ਮੰਡੀ ਭਾਅ ਤੋਂ ਘੱਟ ਦੇ ਰਿਹਾ ਹੈ, ਕੀ ਕਰਾਂ?',
-        'ਨਰਮੇ ਦੇ ਇਕਰਾਰਨਾਮੇ ਵਿੱਚ ਜੁਰਮਾਨੇ ਦੀ ਧਾਰਾ ਕੀ ਹੈ?',
+        'ਕਣਕ ₹2,015/ਕੁਇੰਟਲ ਪਰ ਮੰਡੀ ਭਾਅ ₹2,400 ਹੈ। ਕੀ ਮੈਂ ਕਾਨੂੰਨੀ ਤੌਰ ਤੇ ਇਸ ਇਕਰਾਰਨਾਮੇ ਤੋਂ ਬਾਹਰ ਨਿਕਲ ਸਕਦਾ ਹਾਂ?',
+        'ਆੜ੍ਹਤੀਆ 20% ਕਮਿਸ਼ਨ ਲੈਂਦਾ ਅਤੇ ਭੁਗਤਾਨ ਵਿੱਚ ਦੇਰੀ ਕਰਦਾ ਹੈ। ਮੇਰੇ ਕੋਲ ਕਿਹੜੇ ਵਿਕਲਪ ਹਨ?',
+        'ਵੱਡੀ ਕੰਪਨੀ ਦਾ ਸਪਲਾਈ ਸਮਝੌਤਾ ਮਿਲਿਆ ਹੈ। ਇਸ ਵਿੱਚ ਕਿੱਥੇ ਜੋਖ਼ਮ ਹੈ ਅਤੇ ਕੀ ਸੁਧਾਰਨਾ ਚਾਹੀਦਾ?',
       ],
     },
     {
       lang: 'Marathi',
       queries: [
-        'माझ्या कांद्याच्या करारात ₹800 प्रति क्विंटल आहे. हे योग्य आहे का?',
-        'मध्यस्थी 12% कमिशन घेतो — हे कमी कसे करायचे?',
-        'ऊस करारातील दंड कलम खूप जास्त आहे.',
+        'कांद्याचा करार ₹800/क्विंटल, बाजारभाव ₹1,150. योग्य किंमत मिळवण्यासाठी काय करावे?',
+        'व्यापाऱ्याने आगाऊ कापूस खरेदी केली पण आता कमी दर देतो. माझे कायदेशीर अधिकार काय?',
+        'FPO सोबत शेतमाल करार करायचा आहे. कोणते महत्त्वाचे मुद्दे काळजीपूर्वक तपासावेत?',
       ],
     },
     {
       lang: 'Telugu',
       queries: [
-        'నా వరి ఒప్పందం ₹1,750 క్వింటాల్‌కు న్యాయంగా ఉందా?',
-        'దళారీ 16% కమీషన్ తీసుకుంటున్నారు — ఎలా చర్చించాలి?',
-        'చెరకు ఒప్పందంలో దాచిన నిబంధనలు ఏమిటి?',
+        'వరి ₹1,750/క్వింటాల్ ఒప్పందం, మద్దతు ధర ₹2,183. ఈ వ్యత్యాసంపై ఎలా మాట్లాడాలి?',
+        'గ్రామంలో దళారీ రైతులకు తక్కువ ధర ఇస్తున్నాడు. కలిసి బేరమాడే మార్గం ఉందా?',
+        'సప్లయర్ నాణ్యత తగ్గించి ధర పెంచాడు. ఒప్పందం రద్దు చేసుకోవడానికి ఏమి చేయాలి?',
       ],
     },
   ],
 };
+
 
 /* ── Single rotating bubble with typewriter ── */
 function QueryBubble({ queries, offsetDelay = 0 }) {
@@ -139,7 +140,7 @@ function QueryBubble({ queries, offsetDelay = 0 }) {
   return (
     <div style={{
       width: '300px',
-      minHeight: '90px',
+      height: '130px',           // fixed height — all boxes identical size
       padding: '16px 20px',
       borderRadius: '16px',
       backgroundColor: 'rgba(255, 255, 255, 0.52)',
@@ -148,9 +149,10 @@ function QueryBubble({ queries, offsetDelay = 0 }) {
       WebkitBackdropFilter: 'blur(10px)',
       boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
       fontSize: '14px',
-      lineHeight: '1.65',
+      lineHeight: '1.6',
       color: '#1a2332',
       fontWeight: 600,
+      overflow: 'hidden',        // clip text that exceeds box
       opacity: phase === 'clearing' ? 0 : 1,
       transition: 'opacity 0.45s ease',
     }}>
@@ -162,27 +164,24 @@ function QueryBubble({ queries, offsetDelay = 0 }) {
   );
 }
 
-/* ── Column of 3 bubbles — staggered offset pattern, mirrored on both sides ── */
-// Horizontal offsets from the anchor edge (left or right)
-// Creates a zigzag: flush → indented → half-indent
-const OFFSETS = [0, 42, 18]; // px offset from anchor edge for each bubble
+/* ── Column of 3 bubbles — spans full panel height, staggered offsets ── */
+const OFFSETS = [0, 42, 18];
 
 function BubbleColumn({ langData, align }) {
   const isLeft = align === 'left';
   return (
     <div style={{
-      // Container wide enough to hold bubble + max offset
       width: '346px',
+      height: '100%',
       display: 'flex',
       flexDirection: 'column',
-      gap: '22px',
+      justifyContent: 'space-between',
       flexShrink: 0,
     }}>
       {langData.map((item, i) => (
         <div
           key={item.lang}
           style={{
-            // Stagger: push from the anchor edge by different amounts
             marginLeft: isLeft ? `${OFFSETS[i]}px` : 'auto',
             marginRight: isLeft ? 'auto' : `${OFFSETS[i]}px`,
           }}
@@ -233,7 +232,7 @@ export default function HomePage() {
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 48, background: 'linear-gradient(to top, #e8f0e9, transparent)' }} />
       </div>
 
-      {/* ── Three-column layout — fills full height, no scroll ── */}
+      {/* ── Vertical centering wrapper — fills viewport, centers group ── */}
       <div style={{
         position: 'relative', zIndex: 2,
         display: 'flex',
@@ -241,30 +240,36 @@ export default function HomePage() {
         alignItems: 'center',
         minHeight: 'calc(100vh - 3.5rem)',
         padding: '20px 12px',
-        gap: '24px',
       }}>
 
-        {/* Left: 3 bubble columns — hidden on small screens */}
-        <div className="hidden xl:block">
-          <BubbleColumn langData={LANGUAGES.left} align="left" />
-        </div>
-
-        {/* ── Glass panel ── */}
+        {/* Inner row — alignItems:stretch so columns match panel height exactly */}
         <div style={{
-          backdropFilter: 'blur(24px) saturate(1.8)',
-          WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
-          backgroundColor: 'rgba(255,255,255,0.76)',
-          borderRadius: '28px',
-          border: '1.5px solid rgba(255,255,255,0.9)',
-          boxShadow: '0 8px 56px rgba(0,0,0,0.15), 0 1px 0 rgba(255,255,255,0.85) inset',
-          padding: '30px 40px 26px',
-          width: '100%',
-          maxWidth: '460px',
-          flexShrink: 0,
           display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          alignItems: 'stretch',
+          gap: '24px',
         }}>
+
+          {/* Left bubbles */}
+          <div style={{ display: 'flex', alignSelf: 'stretch' }} className="hidden xl:flex">
+            <BubbleColumn langData={LANGUAGES.left} align="left" />
+          </div>
+
+          {/* Glass panel */}
+          <div style={{
+            backdropFilter: 'blur(24px) saturate(1.8)',
+            WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
+            backgroundColor: 'rgba(255,255,255,0.76)',
+            borderRadius: '28px',
+            border: '1.5px solid rgba(255,255,255,0.9)',
+            boxShadow: '0 8px 56px rgba(0,0,0,0.15), 0 1px 0 rgba(255,255,255,0.85) inset',
+            padding: '30px 40px 26px',
+            width: '100%',
+            maxWidth: '460px',
+            flexShrink: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}>
 
           {/* Logo */}
           <div className="animate-float" style={{ marginBottom: '10px' }}>
@@ -336,12 +341,13 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* Right: 3 bubble columns — hidden on small screens */}
-        <div className="hidden xl:block">
-          <BubbleColumn langData={LANGUAGES.right} align="right" />
-        </div>
+          {/* Right bubbles */}
+          <div style={{ display: 'flex', alignSelf: 'stretch' }} className="hidden xl:flex">
+            <BubbleColumn langData={LANGUAGES.right} align="right" />
+          </div>
 
-      </div>
+        </div>{/* /inner row */}
+      </div>{/* /centering wrapper */}
     </div>
   );
 }
