@@ -144,6 +144,28 @@ Health check — returns `{"status": "ok"}`.
 
 ---
 
+## Hackathon MVP Scope
+
+### Current MVP supports
+
+- Voice and text deal input (Hindi + English)
+- Contract document upload (PDF, image)
+- AI-powered deal analysis via Gemini 2.5 Flash
+- Risk detection with severity scoring
+- Fairness scoring against market prices
+- Counter-offer generation with price reasoning
+- Negotiation strategy recommendations with talking points
+
+### Future roadmap
+
+- Multi-language support (regional Indian languages)
+- Live market data integrations (mandi prices, commodity APIs)
+- Regional pricing intelligence by district/state
+- Contract OCR pipeline for scanned documents
+- Bhashini/Sarvam voice support for deeper local language input
+
+---
+
 ## License
 
 MIT — Built for the Hackathon.
