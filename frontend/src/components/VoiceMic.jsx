@@ -23,6 +23,7 @@ export default function VoiceMic({ onTranscript, disabled = false, autoSubmit = 
   const silenceTimerRef = useRef(null);
   const listeningRef = useRef(false);
   const transcriptRef = useRef('');
+  const finalAccumRef = useRef(''); // Accumulates only final results — prevents mobile triplication
 
   // ── Clear silence timer ──
   function clearSilenceTimer() {
@@ -59,21 +60,20 @@ export default function VoiceMic({ onTranscript, disabled = false, autoSubmit = 
     recognition.lang = 'hi-IN';
 
     recognition.onresult = (event) => {
-      // Only process NEW results from event.resultIndex onward
-      // This prevents mobile Chrome from re-reading old results
-      let finalText = '';
+      // ONLY process NEW results from event.resultIndex onward
+      // Mobile Chrome re-fires with all accumulated results from index 0,
+      // so iterating from 0 causes triplication of words.
       let interimText = '';
 
-      for (let i = 0; i < event.results.length; i++) {
-        const result = event.results[i];
-        if (result.isFinal) {
-          finalText += result[0].transcript + ' ';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalAccumRef.current += event.results[i][0].transcript + ' ';
         } else {
-          interimText += result[0].transcript;
+          interimText += event.results[i][0].transcript;
         }
       }
 
-      const combined = (finalText + interimText).trim();
+      const combined = (finalAccumRef.current + interimText).trim();
       transcriptRef.current = combined;
       setTranscript(combined);
 
@@ -135,6 +135,7 @@ export default function VoiceMic({ onTranscript, disabled = false, autoSubmit = 
       // Start
       setTranscript('');
       transcriptRef.current = '';
+      finalAccumRef.current = '';
       setStatusText('');
       try {
         recognitionRef.current.start();
