@@ -1,29 +1,32 @@
 /**
- * NegotiationStrategy — Counter offer, reasoning, and talk track display.
+ * NegotiationStrategy — Counter offer, reasoning, and talk track.
+ * Refined typography matching the minimal homepage style.
  */
 
 export default function NegotiationStrategy({ result }) {
   if (!result) return null;
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <h2 className="text-lg font-display font-semibold text-slate-800">
+    <div className="space-y-5 animate-fade-in">
+      {/* Section title */}
+      <h2 className="font-display font-bold text-[1.1rem] text-slate-800 tracking-tight">
         Negotiation Strategy
       </h2>
 
       {/* Suggested Counter Offer */}
       {result.suggested_price && (
-        <div className="card p-6 text-center border-robin-200 bg-robin-50/30">
-          <p className="text-sm text-slate-500 mb-1">Suggested Counter Offer</p>
-          <p className="text-3xl font-display font-bold text-robin-700 mb-2">
+        <div className="card p-6 text-center border-robin-200/60 bg-robin-50/30">
+          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em] mb-3">
+            Suggested Counter Offer
+          </p>
+          <p className="text-[2rem] font-display font-black text-robin-700 tracking-tight mb-2">
             {result.suggested_price}
           </p>
-          <div className="flex items-center justify-center space-x-3 text-sm">
+          <div className="flex items-center justify-center gap-3 text-[12px]">
             <span className="badge-low">Fair &amp; Reasonable</span>
             {result.improvement_pct && (
-              <span className="text-robin-600 font-semibold">
-                Potential Improvement: {result.improvement_pct}
+              <span className="text-robin-600 font-bold">
+                {result.improvement_pct} improvement
               </span>
             )}
           </div>
@@ -33,35 +36,35 @@ export default function NegotiationStrategy({ result }) {
       {/* Why this price? */}
       {result.price_reasoning?.length > 0 && (
         <div className="card p-5">
-          <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-3">
-            Why this price?
+          <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em] mb-4">
+            Why This Price
           </h3>
-          <ul className="space-y-2">
+          <ul className="space-y-3">
             {result.price_reasoning.map((reason, index) => (
-              <li key={index} className="flex items-start space-x-2.5 text-sm">
+              <li key={index} className="flex items-start gap-3">
                 <span className="flex-shrink-0 w-5 h-5 rounded-full bg-robin-100 text-robin-700 flex items-center justify-center mt-0.5">
                   <CheckIcon className="w-3 h-3" />
                 </span>
-                <span className="text-slate-700">{reason}</span>
+                <span className="text-[13px] text-slate-700 leading-relaxed">{reason}</span>
               </li>
             ))}
           </ul>
         </div>
       )}
 
-      {/* Negotiation Points / Talk Track */}
+      {/* Talk Track */}
       {result.negotiation_points?.length > 0 && (
         <div className="card p-5">
-          <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-3">
-            Talk Track / Negotiation Points
+          <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em] mb-4">
+            Talk Track
           </h3>
-          <ol className="space-y-2">
+          <ol className="space-y-3">
             {result.negotiation_points.map((point, index) => (
-              <li key={index} className="flex items-start space-x-3 text-sm">
-                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-semibold mt-0.5">
+              <li key={index} className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-bold mt-0.5">
                   {index + 1}
                 </span>
-                <span className="text-slate-700 leading-relaxed">{point}</span>
+                <span className="text-[13px] text-slate-700 leading-relaxed">{point}</span>
               </li>
             ))}
           </ol>
@@ -71,7 +74,7 @@ export default function NegotiationStrategy({ result }) {
       {/* Download button */}
       <button
         onClick={() => downloadStrategy(result)}
-        className="btn-primary w-full flex items-center justify-center space-x-2"
+        className="btn-primary w-full flex items-center justify-center gap-2.5 py-3.5 text-[13px] font-semibold tracking-wide"
         id="download-strategy-button"
       >
         <DownloadIcon className="w-4 h-4" />

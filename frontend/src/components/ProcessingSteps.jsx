@@ -35,10 +35,10 @@ export default function ProcessingSteps({ active = true, onComplete }) {
 
   return (
     <div className="max-w-sm mx-auto py-8">
-      <h2 className="text-lg font-display font-semibold text-slate-800 text-center mb-2">
+      <h2 className="font-display font-black text-[1.5rem] text-slate-900 text-center tracking-tight mb-1">
         Analyzing Contract...
       </h2>
-      <p className="text-sm text-slate-500 text-center mb-8">
+      <p className="text-[13px] text-slate-500 text-center mb-8">
         Please wait while we review your document
       </p>
 

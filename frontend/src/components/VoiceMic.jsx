@@ -1,15 +1,66 @@
 /**
- * VoiceMic — Large microphone button with Web Speech API integration.
+ * VoiceMic — Google Assistant-style mic.
+ * Auto-stops after 3 seconds of silence, auto-submits the transcript.
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 
-export default function VoiceMic({ onTranscript, disabled = false }) {
+const SILENCE_TIMEOUT_MS = 3000; // Stop after 3s of no speech
+
+export default function VoiceMic({ onTranscript, disabled = false, autoSubmit = false, onAutoSubmit }) {
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [supported, setSupported] = useState(true);
+  const [silenceCountdown, setSilenceCountdown] = useState(null); // seconds left
   const recognitionRef = useRef(null);
+  const silenceTimerRef = useRef(null);
+  const countdownRef = useRef(null);
+  const lastResultTimeRef = useRef(null);
 
+  // ── Reset silence timer whenever we get speech ──
+  const resetSilenceTimer = useCallback(() => {
+    lastResultTimeRef.current = Date.now();
+    setSilenceCountdown(null);
+
+    // Clear existing timers
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    if (countdownRef.current) clearInterval(countdownRef.current);
+
+    // Start countdown to auto-stop
+    silenceTimerRef.current = setTimeout(() => {
+      // Auto-stop after silence
+      if (recognitionRef.current && listening) {
+        try { recognitionRef.current.stop(); } catch (e) { /* ignore */ }
+      }
+    }, SILENCE_TIMEOUT_MS);
+
+    // Visual countdown — starts at 2s before auto-stop
+    const countdownDelay = SILENCE_TIMEOUT_MS - 2000;
+    setTimeout(() => {
+      let secondsLeft = 2;
+      setSilenceCountdown(secondsLeft);
+      countdownRef.current = setInterval(() => {
+        secondsLeft -= 1;
+        if (secondsLeft <= 0) {
+          clearInterval(countdownRef.current);
+          setSilenceCountdown(null);
+        } else {
+          setSilenceCountdown(secondsLeft);
+        }
+      }, 1000);
+    }, Math.max(0, countdownDelay));
+  }, [listening]);
+
+  // ── Cleanup timers ──
+  const clearTimers = useCallback(() => {
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    if (countdownRef.current) clearInterval(countdownRef.current);
+    silenceTimerRef.current = null;
+    countdownRef.current = null;
+    setSilenceCountdown(null);
+  }, []);
+
+  // ── Init speech recognition ──
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -20,7 +71,7 @@ export default function VoiceMic({ onTranscript, disabled = false }) {
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = 'hi-IN'; // Hindi + English mixed
+    recognition.lang = 'hi-IN';
 
     recognition.onresult = (event) => {
       let finalText = '';
@@ -33,48 +84,70 @@ export default function VoiceMic({ onTranscript, disabled = false }) {
           interimText += result[0].transcript;
         }
       }
-      setTranscript((finalText + interimText).trim());
+      const combined = (finalText + interimText).trim();
+      setTranscript(combined);
+
+      // Reset silence timer — user is still talking
+      resetSilenceTimer();
     };
 
     recognition.onerror = (event) => {
       console.error('Speech recognition error:', event.error);
       if (event.error !== 'no-speech') {
         setListening(false);
+        clearTimers();
       }
     };
 
     recognition.onend = () => {
       setListening(false);
+      clearTimers();
     };
 
     recognitionRef.current = recognition;
 
     return () => {
+      clearTimers();
       if (recognitionRef.current) {
         try { recognitionRef.current.stop(); } catch (e) { /* ignore */ }
       }
     };
-  }, []);
+  }, [resetSilenceTimer, clearTimers]);
 
+  // ── Auto-submit when listening stops and we have transcript ──
+  useEffect(() => {
+    if (!listening && transcript) {
+      // Push transcript to parent
+      if (onTranscript) onTranscript(transcript);
+
+      // Auto-submit if enabled (Google Assistant behavior)
+      if (autoSubmit && onAutoSubmit) {
+        const timer = setTimeout(() => onAutoSubmit(transcript), 400);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [listening, transcript, onTranscript, autoSubmit, onAutoSubmit]);
+
+  // ── Toggle ──
   const toggleListening = useCallback(() => {
     if (!recognitionRef.current || disabled) return;
 
     if (listening) {
       recognitionRef.current.stop();
       setListening(false);
-      if (transcript && onTranscript) {
-        onTranscript(transcript);
-      }
+      clearTimers();
     } else {
       setTranscript('');
       try {
         recognitionRef.current.start();
         setListening(true);
+        // Start initial silence timer (in case user doesn't speak at all)
+        resetSilenceTimer();
       } catch (e) {
         console.error('Could not start recognition:', e);
       }
     }
-  }, [listening, transcript, onTranscript, disabled]);
+  }, [listening, disabled, clearTimers, resetSilenceTimer]);
 
   if (!supported) {
     return (
@@ -113,14 +186,18 @@ export default function VoiceMic({ onTranscript, disabled = false }) {
 
       {/* Label */}
       <p className="text-sm font-medium text-slate-700 mb-1">
-        {listening ? 'Tap to Stop' : 'Tap to Speak'}
+        {listening ? 'Listening...' : 'Tap to Speak'}
       </p>
 
-      {/* Status */}
+      {/* Status with auto-stop countdown */}
       {listening && (
-        <div className="flex items-center space-x-1.5 text-red-500 text-xs font-medium animate-fade-in">
+        <div className="flex items-center space-x-1.5 text-xs font-medium animate-fade-in">
           <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-          <span>Listening...</span>
+          <span className="text-red-500">
+            {silenceCountdown !== null
+              ? `Auto-stopping in ${silenceCountdown}s...`
+              : 'Speak now — stops automatically when done'}
+          </span>
         </div>
       )}
 
