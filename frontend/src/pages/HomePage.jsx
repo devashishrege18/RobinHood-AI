@@ -107,17 +107,16 @@ export default function HomePage() {
           alignItems: 'center',
         }}>
 
-          {/* Logo — drop-shadow only, mix-blend-mode:multiply blends white box into panel */}
+          {/* Logo — white background blends into white panel via multiply */}
           <div className="animate-float" style={{ marginBottom: '12px' }}>
             <img
-              src="/logo.png"
+              src="/logo-avatar.png"
               alt="Robin-Hood AI"
               style={{
-                width: 96,
-                height: 96,
+                width: 110,
+                height: 110,
                 objectFit: 'contain',
                 mixBlendMode: 'multiply',
-                filter: 'drop-shadow(0 4px 12px rgba(45,106,79,0.25))',
                 userSelect: 'none',
               }}
             />

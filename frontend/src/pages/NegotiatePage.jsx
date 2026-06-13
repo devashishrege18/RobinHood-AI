@@ -22,6 +22,7 @@ export default function NegotiatePage() {
     result,
     loading,
     error,
+    retrying,
     setVoiceText,
     setFile,
     startAnalysis,
@@ -171,6 +172,11 @@ export default function NegotiatePage() {
                 if (!loading && result) showResults();
               }}
             />
+            {retrying && (
+              <div className="mt-5 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 text-center">
+                Backend is waking up — retrying automatically...
+              </div>
+            )}
             {!loading && result && (
               <div className="text-center mt-6">
                 <button onClick={showResults} className="text-sm text-robin-600 font-semibold hover:underline tracking-tight">

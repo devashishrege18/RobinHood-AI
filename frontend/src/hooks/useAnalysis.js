@@ -2,20 +2,21 @@
  * useAnalysis — Manages the 4-step contract analysis flow.
  *
  * Steps: 1=input, 2=processing, 3=results
+ * Includes auto-retry once on failure (handles Render cold-start timeouts).
  */
 
 import { useState, useCallback } from 'react';
 import { analyzeContract } from '../services/api';
 
 export function useAnalysis() {
-  const [step, setStep] = useState(1);        // 1=input, 2=processing, 3=results
+  const [step, setStep] = useState(1);
   const [voiceText, setVoiceText] = useState('');
-  const [file, setFile] = useState(null);      // { name, size, type, base64 }
+  const [file, setFile] = useState(null);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [retrying, setRetrying] = useState(false);
 
-  /** Start the analysis — called when user submits voice/file input. */
   const startAnalysis = useCallback(async (text, uploadedFile) => {
     const inputText = text || voiceText;
     const inputFile = uploadedFile || file;
@@ -26,38 +27,58 @@ export function useAnalysis() {
     }
 
     setError(null);
-    setStep(2); // Show processing animation
+    setRetrying(false);
+    setStep(2);
     setLoading(true);
 
-    try {
-      const response = await analyzeContract({
-        text: inputText,
-        fileBase64: inputFile?.base64 || '',
-        fileName: inputFile?.name || '',
-      });
+    const payload = {
+      text: inputText,
+      fileBase64: inputFile?.base64 || '',
+      fileName: inputFile?.name || '',
+    };
 
+    const attempt = async () => {
+      const response = await analyzeContract(payload);
+      return response;
+    };
+
+    try {
+      const response = await attempt();
       setResult(response);
-      // Step 3 will be set by ProcessingSteps onComplete callback
-    } catch (err) {
-      const msg =
-        err.response?.data?.detail ||
-        err.message ||
-        'Analysis failed. Please try again.';
-      setError(msg);
-      setStep(1); // Go back to input on error
+    } catch (firstErr) {
+      // First failure — likely Render cold start. Auto-retry once.
+      setRetrying(true);
+      try {
+        // Wait 4s for the backend to finish waking up, then retry
+        await new Promise((r) => setTimeout(r, 4000));
+        const response = await attempt();
+        setResult(response);
+        setRetrying(false);
+      } catch (retryErr) {
+        setRetrying(false);
+        const isTimeout =
+          retryErr.code === 'ECONNABORTED' ||
+          retryErr.message?.toLowerCase().includes('timeout') ||
+          retryErr.message?.toLowerCase().includes('network');
+
+        const msg = isTimeout
+          ? 'The backend server is waking up (Render free tier). Please click Analyze again in 30 seconds.'
+          : retryErr.response?.data?.detail ||
+            retryErr.message ||
+            'Analysis failed. Please try again.';
+
+        setError(msg);
+        setStep(1);
+      }
     } finally {
       setLoading(false);
     }
   }, [voiceText, file]);
 
-  /** Move to results view (called after processing animation completes). */
   const showResults = useCallback(() => {
-    if (result) {
-      setStep(3);
-    }
+    if (result) setStep(3);
   }, [result]);
 
-  /** Reset everything for a new analysis. */
   const reset = useCallback(() => {
     setStep(1);
     setVoiceText('');
@@ -65,6 +86,7 @@ export function useAnalysis() {
     setResult(null);
     setError(null);
     setLoading(false);
+    setRetrying(false);
   }, []);
 
   return {
@@ -74,6 +96,7 @@ export function useAnalysis() {
     result,
     loading,
     error,
+    retrying,
     setVoiceText,
     setFile,
     startAnalysis,
