@@ -1,10 +1,9 @@
 /**
- * HomePage — Gallery background, frosted glass panel, floating demo queries.
+ * HomePage — Gallery background, frosted glass panel, 6 multilingual query bubbles.
  *
- * Changes vs previous:
- *  - Panel is in normal flow (scrollable), not position:absolute
- *  - Floating demo query bubbles on left/right with typing animation
- *  - Mix of Hindi and English queries
+ * Left column:  Hindi · Bengali · Tamil
+ * Right column: Punjabi · Marathi · Telugu
+ * All bubbles same frosted-white color, cycle independently with typewriter anim.
  */
 
 import { useState, useEffect, useRef } from 'react';
@@ -12,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import VoiceMic from '../components/VoiceMic';
 import FileUpload from '../components/FileUpload';
 
-/* ── Gallery images ── */
+/* ── Gallery ── */
 const IMAGES = [
   '/gallery/farmer-wheat.png',
   '/gallery/retailer-shop.png',
@@ -44,110 +43,153 @@ function GalleryRow({ images, anim }) {
   );
 }
 
-/* ── Demo queries — alternating Hindi/English ── */
-const LEFT_QUERIES = [
-  "Mera gehu ka contract Rs 2,350 per quintal hai. Kya yeh sahi hai?",
-  "Is this rice procurement deal fair at Rs 1,800/quintal?",
-  "Mujhe kapas ka bhav pata karna hai, contract mein Rs 6,200 likha hai",
-  "What are the hidden clauses in my sugarcane contract?",
-  "Yeh soybean contract mein penalty clause bahut zyada hai",
-  "Can I get a better rate for my tomato harvest this season?",
-];
+/* ── Language query banks ── */
+const LANGUAGES = {
+  left: [
+    {
+      lang: 'Hindi',
+      queries: [
+        'मेरा गेहूं का अनुबंध ₹2,350 प्रति क्विंटल है। क्या यह उचित है?',
+        'बिचौलिया 15% कमीशन ले रहा है, इसे कम कैसे करूं?',
+        'सोयाबीन के अनुबंध में जुर्माना खंड बहुत अधिक है।',
+      ],
+    },
+    {
+      lang: 'Bengali',
+      queries: [
+        'আমার ধানের চুক্তি ₹১,৮০০ প্রতি কুইন্টাল। এটা কি ন্যায্য?',
+        'দালাল বাজার মূল্যের চেয়ে ২০% কম দিচ্ছে।',
+        'কৃষি চুক্তিতে অগ্রিম পেমেন্টের সুবিধা কি আছে?',
+      ],
+    },
+    {
+      lang: 'Tamil',
+      queries: [
+        'என் நெல் ஒப்பந்தம் ₹1,950 குவிண்டாலுக்கு நியாயமா?',
+        'இடைத்தரகர் 18% கமிஷன் வாங்குகிறார் — எப்படி பேசுவது?',
+        'கரும்பு ஒப்பந்தத்தில் மறைந்த நிபந்தனைகள் என்ன?',
+      ],
+    },
+  ],
+  right: [
+    {
+      lang: 'Punjabi',
+      queries: [
+        'ਮੇਰਾ ਕਣਕ ਦਾ ਇਕਰਾਰਨਾਮਾ ₹2,015 ਪ੍ਰਤੀ ਕੁਇੰਟਲ ਹੈ। ਕੀ ਇਹ ਸਹੀ ਹੈ?',
+        'ਦਲਾਲ ਮੰਡੀ ਭਾਅ ਤੋਂ ਘੱਟ ਦੇ ਰਿਹਾ ਹੈ, ਕੀ ਕਰਾਂ?',
+        'ਨਰਮੇ ਦੇ ਇਕਰਾਰਨਾਮੇ ਵਿੱਚ ਜੁਰਮਾਨੇ ਦੀ ਧਾਰਾ ਕੀ ਹੈ?',
+      ],
+    },
+    {
+      lang: 'Marathi',
+      queries: [
+        'माझ्या कांद्याच्या करारात ₹800 प्रति क्विंटल आहे. हे योग्य आहे का?',
+        'मध्यस्थी 12% कमिशन घेतो — हे कमी कसे करायचे?',
+        'ऊस करारातील दंड कलम खूप जास्त आहे.',
+      ],
+    },
+    {
+      lang: 'Telugu',
+      queries: [
+        'నా వరి ఒప్పందం ₹1,750 క్వింటాల్‌కు న్యాయంగా ఉందా?',
+        'దళారీ 16% కమీషన్ తీసుకుంటున్నారు — ఎలా చర్చించాలి?',
+        'చెరకు ఒప్పందంలో దాచిన నిబంధనలు ఏమిటి?',
+      ],
+    },
+  ],
+};
 
-const RIGHT_QUERIES = [
-  "Contract mein payment 90 din baad hai, kya yeh normal hai?",
-  "My landlord is offering 30% share, is this exploitative?",
-  "Bazaar mein aaj dhan ka rate kya chal raha hai?",
-  "The middleman takes 15% commission — how to negotiate lower?",
-  "Sarson ke beej ka contract padho aur batao risk kya hai",
-  "Should I accept advance payment with a price lock clause?",
-];
-
-/* ── Typing text component ── */
-function TypewriterBubble({ text, side, delay = 0 }) {
+/* ── Single rotating bubble with typewriter ── */
+function QueryBubble({ queries, offsetDelay = 0 }) {
+  const [idx, setIdx] = useState(0);
   const [displayed, setDisplayed] = useState('');
-  const [visible, setVisible] = useState(false);
-  const indexRef = useRef(0);
+  const [phase, setPhase] = useState('typing'); // typing | hold | clearing
+  const charRef = useRef(0);
+  const text = queries[idx];
 
   useEffect(() => {
-    indexRef.current = 0;
+    charRef.current = 0;
     setDisplayed('');
-    setVisible(false);
+    setPhase('typing');
 
-    const showTimer = setTimeout(() => {
-      setVisible(true);
-      const interval = setInterval(() => {
-        indexRef.current += 1;
-        if (indexRef.current <= text.length) {
-          setDisplayed(text.slice(0, indexRef.current));
-        } else {
-          clearInterval(interval);
+    const startDelay = setTimeout(() => {
+      // Type chars
+      const typeInterval = setInterval(() => {
+        charRef.current += 1;
+        setDisplayed(text.slice(0, charRef.current));
+        if (charRef.current >= text.length) {
+          clearInterval(typeInterval);
+          setPhase('hold');
+          // Hold then clear then switch
+          setTimeout(() => {
+            setPhase('clearing');
+            setTimeout(() => {
+              setIdx((prev) => (prev + 1) % queries.length);
+            }, 500);
+          }, 3500);
         }
-      }, 35);
-      return () => clearInterval(interval);
-    }, delay);
+      }, 40);
+      return () => clearInterval(typeInterval);
+    }, offsetDelay);
 
-    return () => clearTimeout(showTimer);
-  }, [text, delay]);
+    return () => clearTimeout(startDelay);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idx]);
 
-  if (!visible) return null;
-
-  const isLeft = side === 'left';
   return (
-    <div
-      style={{
-        maxWidth: '220px',
-        padding: '12px 16px',
-        borderRadius: isLeft ? '18px 18px 18px 4px' : '18px 18px 4px 18px',
-        backgroundColor: isLeft ? 'rgba(255,255,255,0.85)' : 'rgba(45,106,79,0.12)',
-        border: `1px solid ${isLeft ? 'rgba(0,0,0,0.06)' : 'rgba(45,106,79,0.2)'}`,
-        backdropFilter: 'blur(8px)',
-        fontSize: '12.5px',
-        lineHeight: '1.5',
-        color: isLeft ? '#334155' : '#1e4d36',
-        fontWeight: 500,
-        boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-        opacity: displayed.length > 0 ? 1 : 0,
-        transform: `translateY(${displayed.length > 0 ? 0 : 8}px)`,
-        transition: 'opacity 0.3s, transform 0.3s',
-      }}
-    >
+    <div style={{
+      width: '270px',
+      minHeight: '80px',
+      padding: '14px 18px',
+      borderRadius: '16px',
+      // Same frosted white for both sides — light, blends with gallery
+      backgroundColor: 'rgba(255, 255, 255, 0.52)',
+      border: '1px solid rgba(255, 255, 255, 0.75)',
+      backdropFilter: 'blur(10px)',
+      WebkitBackdropFilter: 'blur(10px)',
+      boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
+      fontSize: '13px',
+      lineHeight: '1.6',
+      color: '#334155',
+      fontWeight: 500,
+      opacity: phase === 'clearing' ? 0 : 1,
+      transition: 'opacity 0.45s ease',
+    }}>
       {displayed}
-      {displayed.length < text.length && (
-        <span className="animate-pulse" style={{ opacity: 0.6 }}>|</span>
+      {phase === 'typing' && (
+        <span style={{ opacity: 0.5, animation: 'none' }}>|</span>
       )}
     </div>
   );
 }
 
-/* ── Rotating demo queries on one side ── */
-function FloatingQueries({ queries, side }) {
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const [batch, setBatch] = useState(0);
-
-  useEffect(() => {
-    // Show 2 queries at a time, rotate every 8 seconds
-    const timer = setInterval(() => {
-      setCurrentIdx((prev) => (prev + 2) % queries.length);
-      setBatch((b) => b + 1);
-    }, 8000);
-    return () => clearInterval(timer);
-  }, [queries.length]);
-
-  const q1 = queries[currentIdx];
-  const q2 = queries[(currentIdx + 1) % queries.length];
-
+/* ── Column of 3 bubbles ── */
+function BubbleColumn({ langData, align }) {
   return (
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      gap: '16px',
-      alignItems: side === 'left' ? 'flex-start' : 'flex-end',
-      width: '240px',
+      gap: '20px',
+      alignItems: align === 'left' ? 'flex-start' : 'flex-end',
       flexShrink: 0,
     }}>
-      <TypewriterBubble key={`${batch}-0`} text={q1} side={side} delay={200} />
-      <TypewriterBubble key={`${batch}-1`} text={q2} side={side} delay={2500} />
+      {langData.map((item, i) => (
+        <div key={item.lang}>
+          {/* Language label */}
+          <div style={{
+            fontSize: '9px',
+            fontWeight: 700,
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            color: 'rgba(45,106,79,0.7)',
+            marginBottom: '5px',
+            paddingLeft: '4px',
+          }}>
+            {item.lang}
+          </div>
+          <QueryBubble queries={item.queries} offsetDelay={i * 1200} />
+        </div>
+      ))}
     </div>
   );
 }
@@ -168,13 +210,13 @@ export default function HomePage() {
     <div style={{
       minHeight: 'calc(100vh - 3.5rem)',
       position: 'relative',
-      overflow: 'auto',
+      overflow: 'hidden',        // No page scroll — layout fits viewport
       backgroundColor: '#e8f0e9',
     }}>
 
-      {/* ── GALLERY — fixed background ── */}
+      {/* ── Gallery background ── */}
       <div style={{
-        position: 'fixed', top: '3.5rem', left: 0, right: 0, bottom: 0, zIndex: 0,
+        position: 'absolute', inset: 0, zIndex: 0,
         display: 'flex', flexDirection: 'column',
         justifyContent: 'space-around', gap: '8px',
         opacity: 0.80,
@@ -185,129 +227,120 @@ export default function HomePage() {
         <GalleryRow images={ROWS[3]} anim="animate-scroll-right" />
       </div>
 
-      {/* ── Edge vignettes ── */}
-      <div style={{ position: 'fixed', top: '3.5rem', left: 0, right: 0, bottom: 0, zIndex: 1, pointerEvents: 'none' }}>
+      {/* Edge vignettes */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 48, background: 'linear-gradient(to bottom, #e8f0e9, transparent)' }} />
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 48, background: 'linear-gradient(to top, #e8f0e9, transparent)' }} />
       </div>
 
-      {/* ── MAIN CONTENT — normal flow, scrollable ── */}
-      <div style={{ position: 'relative', zIndex: 2, padding: '40px 16px 48px' }}>
+      {/* ── Three-column layout — fills full height, no scroll ── */}
+      <div style={{
+        position: 'relative', zIndex: 2,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: 'calc(100vh - 3.5rem)',
+        padding: '20px 12px',
+        gap: '24px',
+      }}>
 
-        {/* Three-column layout: left queries | panel | right queries */}
+        {/* Left: 3 bubble columns — hidden on small screens */}
+        <div className="hidden xl:block">
+          <BubbleColumn langData={LANGUAGES.left} align="left" />
+        </div>
+
+        {/* ── Glass panel ── */}
         <div style={{
+          backdropFilter: 'blur(24px) saturate(1.8)',
+          WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
+          backgroundColor: 'rgba(255,255,255,0.76)',
+          borderRadius: '28px',
+          border: '1.5px solid rgba(255,255,255,0.9)',
+          boxShadow: '0 8px 56px rgba(0,0,0,0.15), 0 1px 0 rgba(255,255,255,0.85) inset',
+          padding: '30px 40px 26px',
+          width: '100%',
+          maxWidth: '460px',
+          flexShrink: 0,
           display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'flex-start',
-          gap: '28px',
-          maxWidth: '1100px',
-          margin: '0 auto',
+          flexDirection: 'column',
+          alignItems: 'center',
         }}>
 
-          {/* Left floating queries — hidden on mobile */}
-          <div className="hidden lg:flex" style={{ paddingTop: '120px' }}>
-            <FloatingQueries queries={LEFT_QUERIES} side="left" />
+          {/* Logo */}
+          <div className="animate-float" style={{ marginBottom: '10px' }}>
+            <img
+              src="/logo-avatar.png"
+              alt="Robin-Hood AI"
+              style={{ width: 100, height: 100, objectFit: 'contain', mixBlendMode: 'multiply', userSelect: 'none' }}
+            />
           </div>
 
-          {/* ── GLASS PANEL ── */}
-          <div style={{
-            backdropFilter: 'blur(24px) saturate(1.8)',
-            WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
-            backgroundColor: 'rgba(255,255,255,0.76)',
-            borderRadius: '28px',
-            border: '1.5px solid rgba(255,255,255,0.9)',
-            boxShadow: '0 8px 56px rgba(0,0,0,0.15), 0 1px 0 rgba(255,255,255,0.85) inset',
-            padding: '36px 40px 32px',
-            width: '100%',
-            maxWidth: '480px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            flexShrink: 0,
-          }}>
+          {/* Brand */}
+          <h1
+            className="font-display font-black tracking-tight text-center"
+            style={{ fontSize: '2.4rem', color: '#0d1f12', lineHeight: 1, marginBottom: 7 }}
+          >
+            Robin-Hood AI
+          </h1>
 
-            {/* Logo */}
-            <div className="animate-float" style={{ marginBottom: '12px' }}>
-              <img
-                src="/logo-avatar.png"
-                alt="Robin-Hood AI"
-                style={{
-                  width: 110, height: 110,
-                  objectFit: 'contain',
-                  mixBlendMode: 'multiply',
-                  userSelect: 'none',
-                }}
-              />
-            </div>
+          {/* Tagline */}
+          <p
+            className="font-display font-bold tracking-wide text-center"
+            style={{ fontSize: '0.95rem', color: '#2D6A4F', marginBottom: 16 }}
+          >
+            Leveling the Playing Field
+          </p>
 
-            {/* Brand */}
-            <h1
-              className="font-display font-black tracking-tight text-center"
-              style={{ fontSize: '2.5rem', color: '#0d1f12', lineHeight: 1, marginBottom: 8 }}
-            >
-              Robin-Hood AI
-            </h1>
-
-            {/* Tagline */}
-            <p
-              className="font-display font-bold tracking-wide text-center"
-              style={{ fontSize: '1rem', color: '#2D6A4F', marginBottom: 20 }}
-            >
-              Leveling the Playing Field
+          {/* Sub-text */}
+          <div style={{ textAlign: 'center', marginBottom: 18 }}>
+            <p style={{ fontSize: 14, color: '#475569', fontWeight: 500, marginBottom: 5 }}>
+              Your AI Negotiation Partner
             </p>
-
-            {/* Sub-text */}
-            <div style={{ textAlign: 'center', marginBottom: 24 }}>
-              <p style={{ fontSize: 15, color: '#475569', fontWeight: 500, marginBottom: 6 }}>
-                Your AI Negotiation Partner
-              </p>
-              <p style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-                Speak &nbsp;·&nbsp; Understand &nbsp;·&nbsp; Negotiate &nbsp;·&nbsp; Win
-              </p>
-            </div>
-
-            {/* Divider */}
-            <div style={{ width: '100%', height: 1, backgroundColor: 'rgba(0,0,0,0.07)', marginBottom: 24 }} />
-
-            {/* Mic */}
-            <VoiceMic onTranscript={handleTranscript} />
-
-            {/* OR divider */}
-            <div className="flex items-center w-full my-6" style={{ maxWidth: 220 }}>
-              <div style={{ flex: 1, height: 1, backgroundColor: '#e2e8f0' }} />
-              <span style={{ padding: '0 14px', fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.15em', textTransform: 'uppercase' }}>or</span>
-              <div style={{ flex: 1, height: 1, backgroundColor: '#e2e8f0' }} />
-            </div>
-
-            {/* Upload */}
-            <FileUpload onFileSelect={handleFileSelect} />
-
-            {/* Analyze CTA */}
-            {hasInput && (
-              <div className="mt-8 animate-slide-up" style={{ width: '100%' }}>
-                <button
-                  onClick={handleAnalyze}
-                  className="btn-primary w-full py-3.5 text-[14px] font-semibold tracking-wide"
-                  id="analyze-button"
-                >
-                  Analyze Contract
-                </button>
-              </div>
-            )}
-
-            {/* Bottom note */}
-            <p style={{ marginTop: 24, fontSize: 10, color: '#94a3b8', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600, textAlign: 'center' }}>
-              Voice-first &nbsp;·&nbsp; Local Language &nbsp;·&nbsp; Built for Bharat
+            <p style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+              Speak &nbsp;·&nbsp; Understand &nbsp;·&nbsp; Negotiate &nbsp;·&nbsp; Win
             </p>
-
           </div>
 
-          {/* Right floating queries — hidden on mobile */}
-          <div className="hidden lg:flex" style={{ paddingTop: '180px' }}>
-            <FloatingQueries queries={RIGHT_QUERIES} side="right" />
+          {/* Divider */}
+          <div style={{ width: '100%', height: 1, backgroundColor: 'rgba(0,0,0,0.07)', marginBottom: 18 }} />
+
+          {/* Mic */}
+          <VoiceMic onTranscript={handleTranscript} />
+
+          {/* OR divider */}
+          <div className="flex items-center w-full my-5" style={{ maxWidth: 200 }}>
+            <div style={{ flex: 1, height: 1, backgroundColor: '#e2e8f0' }} />
+            <span style={{ padding: '0 12px', fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.15em', textTransform: 'uppercase' }}>or</span>
+            <div style={{ flex: 1, height: 1, backgroundColor: '#e2e8f0' }} />
           </div>
 
+          {/* Upload */}
+          <FileUpload onFileSelect={handleFileSelect} />
+
+          {/* Analyze CTA */}
+          {hasInput && (
+            <div className="mt-6 animate-slide-up" style={{ width: '100%' }}>
+              <button
+                onClick={handleAnalyze}
+                className="btn-primary w-full py-3.5 text-[14px] font-semibold tracking-wide"
+                id="analyze-button"
+              >
+                Analyze Contract
+              </button>
+            </div>
+          )}
+
+          {/* Bottom note */}
+          <p style={{ marginTop: 18, fontSize: 10, color: '#94a3b8', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600, textAlign: 'center' }}>
+            Voice-first &nbsp;·&nbsp; Local Language &nbsp;·&nbsp; Built for Bharat
+          </p>
         </div>
+
+        {/* Right: 3 bubble columns — hidden on small screens */}
+        <div className="hidden xl:block">
+          <BubbleColumn langData={LANGUAGES.right} align="right" />
+        </div>
+
       </div>
     </div>
   );
