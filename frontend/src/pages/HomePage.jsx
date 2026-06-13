@@ -138,55 +138,55 @@ function QueryBubble({ queries, offsetDelay = 0 }) {
 
   return (
     <div style={{
-      width: '270px',
-      minHeight: '80px',
-      padding: '14px 18px',
+      width: '300px',
+      minHeight: '90px',
+      padding: '16px 20px',
       borderRadius: '16px',
-      // Same frosted white for both sides — light, blends with gallery
       backgroundColor: 'rgba(255, 255, 255, 0.52)',
       border: '1px solid rgba(255, 255, 255, 0.75)',
       backdropFilter: 'blur(10px)',
       WebkitBackdropFilter: 'blur(10px)',
-      boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
-      fontSize: '13px',
-      lineHeight: '1.6',
-      color: '#334155',
-      fontWeight: 500,
+      boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
+      fontSize: '14px',
+      lineHeight: '1.65',
+      color: '#1a2332',
+      fontWeight: 600,
       opacity: phase === 'clearing' ? 0 : 1,
       transition: 'opacity 0.45s ease',
     }}>
       {displayed}
       {phase === 'typing' && (
-        <span style={{ opacity: 0.5, animation: 'none' }}>|</span>
+        <span style={{ opacity: 0.4 }}>|</span>
       )}
     </div>
   );
 }
 
-/* ── Column of 3 bubbles ── */
+/* ── Column of 3 bubbles — staggered offset pattern, mirrored on both sides ── */
+// Horizontal offsets from the anchor edge (left or right)
+// Creates a zigzag: flush → indented → half-indent
+const OFFSETS = [0, 42, 18]; // px offset from anchor edge for each bubble
+
 function BubbleColumn({ langData, align }) {
+  const isLeft = align === 'left';
   return (
     <div style={{
+      // Container wide enough to hold bubble + max offset
+      width: '346px',
       display: 'flex',
       flexDirection: 'column',
-      gap: '20px',
-      alignItems: align === 'left' ? 'flex-start' : 'flex-end',
+      gap: '22px',
       flexShrink: 0,
     }}>
       {langData.map((item, i) => (
-        <div key={item.lang}>
-          {/* Language label */}
-          <div style={{
-            fontSize: '9px',
-            fontWeight: 700,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'rgba(45,106,79,0.7)',
-            marginBottom: '5px',
-            paddingLeft: '4px',
-          }}>
-            {item.lang}
-          </div>
+        <div
+          key={item.lang}
+          style={{
+            // Stagger: push from the anchor edge by different amounts
+            marginLeft: isLeft ? `${OFFSETS[i]}px` : 'auto',
+            marginRight: isLeft ? 'auto' : `${OFFSETS[i]}px`,
+          }}
+        >
           <QueryBubble queries={item.queries} offsetDelay={i * 1200} />
         </div>
       ))}
