@@ -166,6 +166,43 @@ Health check — returns `{"status": "ok"}`.
 
 ---
 
+## Deployment
+
+### Live Demo
+
+| Service  | URL |
+|----------|-----|
+| Frontend | [robin-hood-ai.vercel.app](https://robin-hood-ai.vercel.app) |
+| Backend  | [robinhood-ai-backend.onrender.com](https://robinhood-ai-backend.onrender.com) |
+| API Docs | [robinhood-ai-backend.onrender.com/docs](https://robinhood-ai-backend.onrender.com/docs) |
+
+### Architecture
+
+```
+User (Browser)
+  │
+  ├── Frontend (Vercel)
+  │     React + Vite + TailwindCSS
+  │     Voice input via Web Speech API
+  │     Static assets served from Vercel CDN
+  │
+  └── Backend (Render)
+        FastAPI (Python)
+        POST /api/analyze → Gemini 2.5 Flash
+        Returns structured JSON (risk score, market data, strategy)
+```
+
+### Deployment Details
+
+- **Frontend** is deployed on **Vercel** with auto-deploy from GitHub. The `VITE_API_URL` environment variable points to the Render backend.
+- **Backend** is deployed on **Render** as a Python web service. The `GEMINI_API_KEY` environment variable is set securely in Render's dashboard.
+- **CORS** is configured on the backend to allow cross-origin requests from the Vercel frontend.
+- Both services auto-deploy on every push to the `main` branch.
+
+> Note: Render free tier may spin down after inactivity. The first request after idle may take 30-50 seconds to wake up.
+
+---
+
 ## License
 
 MIT — Built for the Hackathon.
