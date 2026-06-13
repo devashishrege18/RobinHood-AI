@@ -38,11 +38,12 @@ export default function RiskGauge({ score = 50, size = 180 }) {
           strokeDashoffset={offset}
           className="transition-all duration-1000 ease-out"
         />
-        {/* Score text */}
-        <text x="100" y="85" textAnchor="middle" className="font-display" fill="#1e293b" fontSize="36" fontWeight="700">
+        {/* Score text — right-aligned before center */}
+        <text x="96" y="88" textAnchor="end" className="font-display" fill="#1e293b" fontSize="38" fontWeight="800">
           {score}
         </text>
-        <text x="100" y="85" textAnchor="middle" fill="#94a3b8" fontSize="14" fontWeight="400" dx="28" dy="-8">
+        {/* /100 — left-aligned after center */}
+        <text x="100" y="88" textAnchor="start" fill="#94a3b8" fontSize="13" fontWeight="500">
           /100
         </text>
       </svg>
